@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('cloning') {
+            steps {
+                git 'https://github.com/JAGGU112223/task2.git'
+            }
+        }
+
+        stage('build stage') {
+            steps {
+                sh 'cd /var/lib/jenkins/workspace/task2'
+                sh 'sudo docker build -t jagadish143/task2 .'
+            }
+        }
+
+        stage('docker login stage') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: '46c5852f-f44b-4874-9441-60844451678f',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
+            }
+        }
+
+        stage('docker push') {
+            steps {
+                sh 'docker push jagadish143/task2:latest'
+            }
+        }
+                stage('Deploy the Image in Docker Engine') {
+            steps {
+                sh 'docker run -itd --name task2 -p 60:80  jagadish143/task2:latest'
+            }
+        }
+    }
+}
